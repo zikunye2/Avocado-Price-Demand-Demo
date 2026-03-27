@@ -1,15 +1,7 @@
-Analyze the avocado price and sales volume dataset in `data/avocado.csv` and build an interactive executive dashboard as a single HTML file.
+Analyze the avocado dataset in `data/avocado.csv` and build a dashboard.
 
-1. Inspect the dataset and summarize what you find (columns, data types, time range, any issues)
-2. Analyze the relationship between price and demand (total_volume):
-   - Run a regression of log(total_volume) on average_price, controlling for geography (market fixed effects), type (organic vs conventional), and year
-   - Report the price coefficient, R², and interpret the result in business terms (price elasticity)
-   - Compare this to a naive regression without controls to show why controls matter
-3. Build `dashboard.html` in this folder with:
-   - KPI cards: average price, total volume sold, number of markets, price elasticity estimate
-   - Price vs. Volume scatter plot with regression line (use residuals after controlling for geography, or facet by a few representative markets)
-   - Average price trend over time (monthly, 2015–2020)
-   - Organic vs. Conventional comparison (price and volume)
-   - Top 10 markets by total volume
+This is real weekly data from the Hass Avocado Board (2015–2020) covering 54 U.S. markets with average price, sales volume, and organic vs conventional types.
 
-Use Python for analysis. The dashboard must be a single self-contained HTML file (inline CSS/JS, no external dependencies) that opens in any browser. Make it professional and executive-ready.
+1. Run a regression to estimate how price affects demand (volume), controlling for market, type, and year. Compare with and without controls to show why they matter. Interpret the result as price elasticity.
+2. Show any other interesting patterns you find in the data.
+3. Build a single-file `dashboard.html` that I can open in a browser. Include the regression result, price trends over time, organic vs conventional comparison, and top markets by volume. Make it look professional.
