@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Avocado Price & Demand Dashboard</title>
+  <style>
+    :root {
+      --bg: #f4efe3;
+      --bg-deep: #e7dfcc;
+      --paper: rgba(255, 255, 255, 0.84);
+      --paper-strong: rgba(255, 255, 255, 0.94);
+      --ink: #193126;
+      --muted: #5f6d63;
+      --border: rgba(25, 49, 38, 0.12);
+      --green-dark: #244d37;
+      --green-mid: #5f8453;
+      --green-soft: #a9c08d;
+      --gold: #d9a441;
+      --orange: #c9744c;
+      --teal: #2f7b7a;
+      --shadow: 0 24px 60px rgba(41, 57, 47, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(169, 192, 141, 0.60), transparent 28%),
+        radial-gradient(circle at 90% 12%, rgba(217, 164, 65, 0.22), transparent 24%),
+        linear-gradient(180deg, var(--bg) 0%, #f7f4ec 44%, #f0eadc 100%);
+      color: var(--ink);
+      font-family: "Avenir Next", "Helvetica Neue", "Segoe UI", sans-serif;
+      line-height: 1.55;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 28px 28px;
+      mask-image: linear-gradient(180deg, rgba(0,0,0,0.25), transparent 85%);
+      opacity: 0.5;
+    }
+
+    .page {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 36px 22px 60px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      border-radius: 34px;
+      padding: 42px;
+      color: #f8f4eb;
+      background:
+        radial-gradient(circle at 85% 18%, rgba(217, 164, 65, 0.22), transparent 24%),
+        radial-gradient(circle at 15% 86%, rgba(169, 192, 141, 0.18), transparent 26%),
+        linear-gradient(135deg, #1f4332 0%, #2e5b3e 54%, #527f52 100%);
+      box-shadow: 0 30px 72px rgba(26, 52, 39, 0.26);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 76% 34%, rgba(255,255,255,0.08), transparent 18%),
+        radial-gradient(circle at 90% 80%, rgba(255,255,255,0.07), transparent 14%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      font-size: 0.88rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(248, 244, 235, 0.72);
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+    }
+
+    .hero h1 {
+      max-width: 880px;
+      font-size: clamp(2.5rem, 4.9vw, 4.35rem);
+    }
+
+    .hero-lead {
+      max-width: 820px;
+      margin: 18px 0 0;
+      font-size: 1.06rem;
+      color: rgba(248, 244, 235, 0.82);
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .chip {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.08);
+      padding: 8px 12px;
+      border-radius: 999px;
+      color: rgba(248, 244, 235, 0.88);
+      font-size: 0.9rem;
+      backdrop-filter: blur(10px);
+    }
+
+    .hero-grid {
+      margin-top: 28px;
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .metric-card {
+      position: relative;
+      padding: 18px 18px 16px;
+      border-radius: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+    }
+
+    .metric-label {
+      margin: 0;
+      font-size: 0.82rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(248, 244, 235, 0.72);
+    }
+
+    .metric-value {
+      margin: 8px 0 6px;
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+
+    .metric-detail {
+      margin: 0;
+      font-size: 0.92rem;
+      color: rgba(248, 244, 235, 0.78);
+    }
+
+    main {
+      margin-top: 24px;
+      display: grid;
+      gap: 24px;
+    }
+
+    .panel {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: end;
+      margin-bottom: 20px;
+    }
+
+    .panel-header p {
+      max-width: 760px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .panel h2 {
+      font-size: 1.7rem;
+      margin-bottom: 4px;
+    }
+
+    .two-up {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    .regression-grid {
+      display: grid;
+      grid-template-columns: 0.92fr 1.08fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .chart-card,
+    .note-card,
+    .model-card {
+      border-radius: 24px;
+      border: 1px solid rgba(25, 49, 38, 0.08);
+      background: var(--paper-strong);
+      padding: 18px 18px 16px;
+    }
+
+    .model-stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .model-card.featured {
+      background: linear-gradient(180deg, rgba(95, 132, 83, 0.12), rgba(255,255,255,0.95));
+      border-color: rgba(95, 132, 83, 0.22);
+    }
+
+    .kicker {
+      margin: 0 0 6px;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+
+    .big-number {
+      margin: 0;
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--ink);
+    }
+
+    .model-meta {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 0.93rem;
+    }
+
+    .model-spec {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 0.92em;
+      background: rgba(25, 49, 38, 0.06);
+      padding: 0.15em 0.42em;
+      border-radius: 8px;
+    }
+
+    .note-card p,
+    .chart-card p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .card-title {
+      margin: 0 0 6px;
+      font-size: 1.08rem;
+      font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+    }
+
+    .card-subtitle {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .summary-tile {
+      border-radius: 18px;
+      padding: 14px;
+      background: rgba(25, 49, 38, 0.04);
+      border: 1px solid rgba(25, 49, 38, 0.06);
+    }
+
+    .summary-tile .label {
+      margin: 0;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .summary-tile .value {
+      margin: 6px 0 2px;
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .summary-tile .detail {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .insight-grid {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .insight-card {
+      position: relative;
+      overflow: hidden;
+      padding: 18px 18px 16px;
+      border-radius: 22px;
+      background: var(--paper-strong);
+      border: 1px solid rgba(25, 49, 38, 0.08);
+    }
+
+    .insight-accent {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 6px;
+    }
+
+    .insight-title {
+      margin: 0 0 6px 0;
+      padding-left: 8px;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .insight-value {
+      margin: 0;
+      padding-left: 8px;
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .insight-detail {
+      margin: 8px 0 0;
+      padding-left: 8px;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    footer {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      padding: 0 4px 20px;
+    }
+
+    .footnote {
+      margin: 0;
+    }
+
+    svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      overflow: visible;
+    }
+
+    .chart-title {
+      fill: var(--ink);
+      font-family: "Avenir Next", "Helvetica Neue", "Segoe UI", sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .axis-label,
+    .annotation-label,
+    .legend-label,
+    .series-label,
+    .value-label {
+      fill: var(--muted);
+      font-family: "Avenir Next", "Helvetica Neue", "Segoe UI", sans-serif;
+    }
+
+    .axis-label {
+      font-size: 12px;
+    }
+
+    .annotation-label {
+      font-size: 11px;
+    }
+
+    .legend-label {
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .series-label {
+      font-size: 12px;
+      font-weight: 700;
+      fill: var(--ink);
+    }
+
+    .value-label {
+      font-size: 12px;
+      font-weight: 700;
+      fill: var(--ink);
+    }
+
+    .chart-grid {
+      stroke: rgba(25, 49, 38, 0.12);
+      stroke-width: 1;
+    }
+
+    .chart-grid-faint {
+      stroke: rgba(25, 49, 38, 0.08);
+      stroke-width: 1;
+      stroke-dasharray: 3 6;
+    }
+
+    .chart-axis-strong {
+      stroke: rgba(25, 49, 38, 0.26);
+      stroke-width: 1.2;
+    }
+
+    @media (max-width: 1080px) {
+      .hero-grid,
+      .two-up,
+      .regression-grid,
+      .insight-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 780px) {
+      .page {
+        padding: 18px 14px 42px;
+      }
+
+      .hero,
+      .panel {
+        padding: 22px;
+        border-radius: 24px;
+      }
+
+      .hero-grid,
+      .two-up,
+      .regression-grid,
+      .insight-grid,
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .panel-header {
+        align-items: start;
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <p class="eyebrow">Avocado Price & Demand Dashboard</p>
+      <h1>Demand is close to unit elastic once you compare like with like.</h1>
+      <p class="hero-lead">
+        Using 33,045 weekly geography-type observations from the Hass Avocado Board, a controlled
+        log-log demand model estimates an elasticity of <strong>-1.04</strong>. The naive estimate
+        is far steeper because it mixes market mix, type mix, and year effects into the price coefficient.
+      </p>
+      <div class="hero-meta">
+        <span class="chip">Jan 04, 2015 to Nov 29, 2020</span>
+        <span class="chip">306 weekly snapshots</span>
+        <span class="chip">54 geographies</span>
+        <span class="chip">32.00B avocados sold in the panel</span>
+      </div>
+      <div class="hero-grid">
+        <div class="metric-card">
+  <p class="metric-label">Controlled elasticity</p>
+  <p class="metric-value">-1.04</p>
+  <p class="metric-detail">95% CI -1.06 to -1.02</p>
+</div>
+<div class="metric-card">
+  <p class="metric-label">10% higher price</p>
+  <p class="metric-value">9.4%</p>
+  <p class="metric-detail">Expected drop in weekly volume after controls</p>
+</div>
+<div class="metric-card">
+  <p class="metric-label">Organic premium</p>
+  <p class="metric-value">45.3%</p>
+  <p class="metric-detail">Weighted average price above conventional</p>
+</div>
+<div class="metric-card">
+  <p class="metric-label">2020 volume vs 2015</p>
+  <p class="metric-value">48.9%</p>
+  <p class="metric-detail">Growth in national avocado sales volume</p>
+</div>
+      </div>
+    </header>
+
+    <main>
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>1. Price Elasticity of Demand</h2>
+          </div>
+          <p>
+            The specification is <code>ln(volume) = a + b ln(price) + geography FE + type FE + year FE</code>.
+            In a log-log model, the price coefficient is elasticity: a 1% price change maps to a <code>b%</code> change in volume.
+          </p>
+        </div>
+        <div class="regression-grid">
+          <div class="model-stack">
+            <div class="model-card">
+              <p class="kicker">Naive model</p>
+              <p class="big-number">-4.59</p>
+              <p class="model-meta">95% CI -4.66 to -4.52 | R² 0.324</p>
+              <p class="model-spec">
+                Without controls, a 10% price increase is associated with <strong>35.4%</strong> lower weekly volume.
+              </p>
+            </div>
+            <div class="model-card featured">
+              <p class="kicker">Controlled model</p>
+              <p class="big-number">-1.04</p>
+              <p class="model-meta">95% CI -1.06 to -1.02 | R² 0.972</p>
+              <p class="model-spec">
+                After holding geography, organic vs conventional mix, and calendar year constant, a 10% price increase
+                maps to roughly <strong>9.4%</strong> lower demand. That is close to unit elasticity.
+              </p>
+            </div>
+            <div class="note-card">
+              <p class="card-title">Interpretation</p>
+              <p>
+                Controls matter because expensive observations are not random. Organic avocados are priced about
+                <strong>45.3%</strong> above conventional but account for only <strong>3.3%</strong>
+                of total volume, and higher-cost markets also have structurally smaller baseline demand. The uncontrolled
+                coefficient loads those differences onto price.
+              </p>
+              <p style="margin-top:10px;">
+                Robustness check: restricting the model to local markets and removing broad regional rollups still
+                yields an elasticity of <strong>-1.05</strong>.</p>
+            </div>
+          </div>
+          <div class="chart-card">
+            <p class="card-title">Controls collapse the apparent effect</p>
+            <p class="card-subtitle">Point estimates and 95% confidence intervals</p>
+            <svg viewBox="0 0 760 270" role="img" aria-label="Price elasticity comparison chart"><rect x="0" y="0" width="760" height="270" rx="24" fill="transparent" /><line x1="118.00" y1="34.00" x2="118.00" y2="218.00" class="chart-grid" /><text x="118.00" y="252.00" text-anchor="middle" class="axis-label">-5</text><line x1="240.80" y1="34.00" x2="240.80" y2="218.00" class="chart-grid" /><text x="240.80" y="252.00" text-anchor="middle" class="axis-label">-4</text><line x1="363.60" y1="34.00" x2="363.60" y2="218.00" class="chart-grid" /><text x="363.60" y="252.00" text-anchor="middle" class="axis-label">-3</text><line x1="486.40" y1="34.00" x2="486.40" y2="218.00" class="chart-grid" /><text x="486.40" y="252.00" text-anchor="middle" class="axis-label">-2</text><line x1="609.20" y1="34.00" x2="609.20" y2="218.00" class="chart-grid" /><text x="609.20" y="252.00" text-anchor="middle" class="axis-label">-1</text><line x1="732.00" y1="34.00" x2="732.00" y2="218.00" class="chart-grid" /><text x="732.00" y="252.00" text-anchor="middle" class="axis-label">0</text><line x1="732.00" y1="34.00" x2="732.00" y2="218.00" class="chart-axis-strong" /><line x1="159.26" y1="94.72" x2="176.81" y2="94.72" stroke="#c9744c" stroke-width="6" stroke-linecap="round" opacity="0.75" /><circle cx="168.04" cy="94.72" r="9" fill="#c9744c" stroke="white" stroke-width="4" /><text x="100.00" y="99.72" text-anchor="end" class="series-label">Without controls</text><text x="186.04" y="82.72" text-anchor="start" class="value-label">-4.59</text><text x="186.04" y="108.72" text-anchor="start" class="annotation-label">95% CI -4.66 to -4.52</text><line x1="601.34" y1="172.00" x2="606.89" y2="172.00" stroke="#244d37" stroke-width="6" stroke-linecap="round" opacity="0.75" /><circle cx="604.12" cy="172.00" r="9" fill="#244d37" stroke="white" stroke-width="4" /><text x="100.00" y="177.00" text-anchor="end" class="series-label">With geography, type, and year controls</text><text x="622.12" y="160.00" text-anchor="start" class="value-label">-1.04</text><text x="622.12" y="186.00" text-anchor="start" class="annotation-label">95% CI -1.06 to -1.02</text><text x="118.00" y="18.00" text-anchor="start" class="chart-title">Elasticity (log price coefficient)</text></svg>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>2. Pricing and Type Mix</h2>
+          </div>
+          <p>
+            Volume-weighted prices show a persistent organic premium, a clear 2017 price spike, and a 2020 reset lower
+            even as total volume hit a new high.
+          </p>
+        </div>
+        <div class="two-up">
+          <div class="chart-card">
+            <p class="card-title">Price trends over time</p>
+            <p class="card-subtitle">Monthly weighted average prices across all geographies</p>
+            <svg viewBox="0 0 760 360" role="img" aria-label="Monthly avocado price trends"><line x1="54.00" y1="306.00" x2="726.00" y2="306.00" class="chart-grid" /><text x="46.00" y="310.00" text-anchor="end" class="axis-label">$0.80</text><line x1="54.00" y1="267.14" x2="726.00" y2="267.14" class="chart-grid" /><text x="46.00" y="271.14" text-anchor="end" class="axis-label">$1.00</text><line x1="54.00" y1="228.29" x2="726.00" y2="228.29" class="chart-grid" /><text x="46.00" y="232.29" text-anchor="end" class="axis-label">$1.20</text><line x1="54.00" y1="189.43" x2="726.00" y2="189.43" class="chart-grid" /><text x="46.00" y="193.43" text-anchor="end" class="axis-label">$1.40</text><line x1="54.00" y1="150.57" x2="726.00" y2="150.57" class="chart-grid" /><text x="46.00" y="154.57" text-anchor="end" class="axis-label">$1.60</text><line x1="54.00" y1="111.71" x2="726.00" y2="111.71" class="chart-grid" /><text x="46.00" y="115.71" text-anchor="end" class="axis-label">$1.80</text><line x1="54.00" y1="72.86" x2="726.00" y2="72.86" class="chart-grid" /><text x="46.00" y="76.86" text-anchor="end" class="axis-label">$2.00</text><line x1="54.00" y1="34.00" x2="726.00" y2="34.00" class="chart-grid" /><text x="46.00" y="38.00" text-anchor="end" class="axis-label">$2.20</text><line x1="54.00" y1="34.00" x2="54.00" y2="306.00" class="chart-grid-faint" /><text x="54.00" y="342.00" text-anchor="middle" class="axis-label">2015</text><line x1="169.20" y1="34.00" x2="169.20" y2="306.00" class="chart-grid-faint" /><text x="169.20" y="342.00" text-anchor="middle" class="axis-label">2016</text><line x1="284.40" y1="34.00" x2="284.40" y2="306.00" class="chart-grid-faint" /><text x="284.40" y="342.00" text-anchor="middle" class="axis-label">2017</text><line x1="399.60" y1="34.00" x2="399.60" y2="306.00" class="chart-grid-faint" /><text x="399.60" y="342.00" text-anchor="middle" class="axis-label">2018</text><line x1="514.80" y1="34.00" x2="514.80" y2="306.00" class="chart-grid-faint" /><text x="514.80" y="342.00" text-anchor="middle" class="axis-label">2019</text><line x1="630.00" y1="34.00" x2="630.00" y2="306.00" class="chart-grid-faint" /><text x="630.00" y="342.00" text-anchor="middle" class="axis-label">2020</text><line x1="54.00" y1="306.00" x2="726.00" y2="306.00" class="chart-axis-strong" /><rect x="54.00" y="10" width="12" height="12" rx="4" fill="#244d37" /><text x="72.00" y="21.00" text-anchor="start" class="legend-label">Overall</text><rect x="184.00" y="10" width="12" height="12" rx="4" fill="#2f7b7a" /><text x="202.00" y="21.00" text-anchor="start" class="legend-label">Conventional</text><rect x="314.00" y="10" width="12" height="12" rx="4" fill="#d9a441" /><text x="332.00" y="21.00" text-anchor="start" class="legend-label">Organic</text><path d="M 54.00 263.79 L 63.60 272.08 L 73.20 261.70 L 82.80 255.72 L 92.40 261.51 L 102.00 262.40 L 111.60 253.61 L 121.20 252.11 L 130.80 259.81 L 140.40 261.77 L 150.00 272.52 L 159.60 277.98 L 169.20 280.66 L 178.80 292.34 L 188.40 277.41 L 198.00 283.75 L 207.60 287.67 L 217.20 261.43 L 226.80 236.70 L 236.40 242.74 L 246.00 241.56 L 255.60 205.17 L 265.20 202.81 L 274.80 267.67 L 284.40 274.34 L 294.00 286.55 L 303.60 225.06 L 313.20 225.04 L 322.80 225.98 L 332.40 225.12 L 342.00 212.87 L 351.60 188.75 L 361.20 150.71 L 370.80 165.44 L 380.40 226.98 L 390.00 250.83 L 399.60 244.46 L 409.20 267.15 L 418.80 251.24 L 428.40 252.52 L 438.00 267.76 L 447.60 252.38 L 457.20 249.47 L 466.80 233.60 L 476.40 222.09 L 486.00 248.08 L 495.60 246.35 L 505.20 220.56 L 514.80 262.83 L 524.40 279.82 L 534.00 267.35 L 543.60 235.22 L 553.20 211.99 L 562.80 205.92 L 572.40 170.36 L 582.00 199.79 L 591.60 223.00 L 601.20 246.61 L 610.80 256.60 L 620.40 263.91 L 630.00 268.81 L 639.60 272.56 L 649.20 233.18 L 658.80 230.45 L 668.40 244.54 L 678.00 248.73 L 687.60 256.15 L 697.20 265.25 L 706.80 270.94 L 716.40 273.17 L 726.00 280.34" fill="none" stroke="#244d37" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" /><circle cx="726.00" cy="280.34" r="4.5" fill="#244d37" stroke="white" stroke-width="2" /><path d="M 54.00 265.61 L 63.60 274.07 L 73.20 263.78 L 82.80 257.94 L 92.40 263.47 L 102.00 264.66 L 111.60 254.88 L 121.20 254.28 L 130.80 262.34 L 140.40 264.20 L 150.00 274.73 L 159.60 280.15 L 169.20 282.66 L 178.80 294.52 L 188.40 279.42 L 198.00 286.26 L 207.60 290.20 L 217.20 263.69 L 226.80 239.06 L 236.40 244.99 L 246.00 244.20 L 255.60 207.08 L 265.20 205.19 L 274.80 270.10 L 284.40 276.55 L 294.00 289.02 L 303.60 226.04 L 313.20 227.35 L 322.80 228.78 L 332.40 228.21 L 342.00 216.01 L 351.60 192.37 L 361.20 154.11 L 370.80 168.43 L 380.40 230.87 L 390.00 254.25 L 399.60 247.62 L 409.20 270.69 L 418.80 254.77 L 428.40 255.96 L 438.00 271.17 L 447.60 255.64 L 457.20 252.87 L 466.80 236.84 L 476.40 225.88 L 486.00 251.84 L 495.60 250.26 L 505.20 223.63 L 514.80 266.16 L 524.40 282.87 L 534.00 270.33 L 543.60 238.28 L 553.20 215.15 L 562.80 208.93 L 572.40 173.88 L 582.00 203.58 L 591.60 226.40 L 601.20 249.50 L 610.80 260.01 L 620.40 267.45 L 630.00 272.06 L 639.60 275.77 L 649.20 236.72 L 658.80 234.04 L 668.40 248.23 L 678.00 252.86 L 687.60 260.61 L 697.20 269.59 L 706.80 275.39 L 716.40 277.40 L 726.00 284.66" fill="none" stroke="#2f7b7a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" /><circle cx="726.00" cy="284.66" r="4.5" fill="#2f7b7a" stroke="white" stroke-width="2" /><path d="M 54.00 179.77 L 63.60 174.64 L 73.20 171.74 L 82.80 162.67 L 92.40 173.56 L 102.00 138.79 L 111.60 186.39 L 121.20 146.30 L 130.80 116.71 L 140.40 133.72 L 150.00 167.61 L 159.60 171.64 L 169.20 188.05 L 178.80 185.52 L 188.40 205.79 L 198.00 204.49 L 207.60 197.91 L 217.20 178.23 L 226.80 156.97 L 236.40 168.13 L 246.00 150.90 L 255.60 139.50 L 265.20 136.40 L 274.80 181.89 L 284.40 183.15 L 294.00 205.14 L 303.60 203.45 L 313.20 165.28 L 322.80 144.30 L 332.40 135.91 L 342.00 118.69 L 351.60 82.22 L 361.20 71.11 L 370.80 96.66 L 380.40 113.15 L 390.00 154.65 L 399.60 154.99 L 409.20 161.34 L 418.80 163.03 L 428.40 162.79 L 438.00 169.32 L 447.60 174.75 L 457.20 153.46 L 466.80 146.04 L 476.40 131.10 L 486.00 157.43 L 495.60 160.34 L 505.20 153.06 L 514.80 172.43 L 524.40 186.50 L 534.00 185.44 L 543.60 152.19 L 553.20 113.57 L 562.80 122.45 L 572.40 70.21 L 582.00 95.22 L 591.60 135.38 L 601.20 174.73 L 610.80 167.65 L 620.40 166.98 L 630.00 188.27 L 639.60 184.99 L 649.20 149.91 L 658.80 149.68 L 668.40 152.82 L 678.00 150.00 L 687.60 149.31 L 697.20 151.66 L 706.80 153.85 L 716.40 171.80 L 726.00 182.97" fill="none" stroke="#d9a441" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" /><circle cx="726.00" cy="182.97" r="4.5" fill="#d9a441" stroke="white" stroke-width="2" /><text x="54.00" y="335.00" text-anchor="start" class="annotation-label">Monthly weighted average price</text></svg>
+            <div class="summary-grid">
+              <div class="summary-tile">
+                <p class="label">2017 shock</p>
+                <p class="value">$1.21</p>
+                <p class="detail">Highest weighted average annual price in the sample</p>
+              </div>
+              <div class="summary-tile">
+                <p class="label">2020 reset</p>
+                <p class="value">-9.1%</p>
+                <p class="detail">Change in weighted average price from 2019 to 2020</p>
+              </div>
+            </div>
+          </div>
+          <div class="chart-card">
+            <p class="card-title">Organic vs conventional</p>
+            <p class="card-subtitle">Organic share is growing, but it remains a small slice of national volume</p>
+            <svg viewBox="0 0 760 340" role="img" aria-label="Organic volume share and price premium by year"><line x1="58.00" y1="286.00" x2="702.00" y2="286.00" class="chart-grid" /><text x="50.00" y="290.00" text-anchor="end" class="axis-label">0.0%</text><line x1="58.00" y1="236.00" x2="702.00" y2="236.00" class="chart-grid" /><text x="50.00" y="240.00" text-anchor="end" class="axis-label">1.0%</text><line x1="58.00" y1="186.00" x2="702.00" y2="186.00" class="chart-grid" /><text x="50.00" y="190.00" text-anchor="end" class="axis-label">2.0%</text><line x1="58.00" y1="136.00" x2="702.00" y2="136.00" class="chart-grid" /><text x="50.00" y="140.00" text-anchor="end" class="axis-label">3.0%</text><line x1="58.00" y1="86.00" x2="702.00" y2="86.00" class="chart-grid" /><text x="50.00" y="90.00" text-anchor="end" class="axis-label">4.0%</text><line x1="58.00" y1="36.00" x2="702.00" y2="36.00" class="chart-grid" /><text x="50.00" y="40.00" text-anchor="end" class="axis-label">5.0%</text><text x="710.00" y="290.00" text-anchor="start" class="axis-label">$0.40</text><text x="710.00" y="227.50" text-anchor="start" class="axis-label">$0.45</text><text x="710.00" y="165.00" text-anchor="start" class="axis-label">$0.50</text><text x="710.00" y="102.50" text-anchor="start" class="axis-label">$0.55</text><text x="710.00" y="40.00" text-anchor="start" class="axis-label">$0.60</text><rect x="58.00" y="10" width="12" height="12" rx="4" fill="#5f8453" /><text x="76.00" y="21.00" text-anchor="start" class="legend-label">Organic volume share</text><line x1="238.00" y1="16" x2="258.00" y2="16" stroke="#d9a441" stroke-width="3" /><text x="266.00" y="21.00" text-anchor="start" class="legend-label">Organic price premium</text><rect x="90.67" y="184.68" width="42.00" height="101.32" rx="12" fill="#5f8453" opacity="0.9" /><text x="111.67" y="322.00" text-anchor="middle" class="axis-label">2015</text><text x="111.67" y="176.68" text-anchor="middle" class="annotation-label">2.0%</text><rect x="198.00" y="150.51" width="42.00" height="135.49" rx="12" fill="#5f8453" opacity="0.9" /><text x="219.00" y="322.00" text-anchor="middle" class="axis-label">2016</text><text x="219.00" y="142.51" text-anchor="middle" class="annotation-label">2.7%</text><rect x="305.33" y="115.62" width="42.00" height="170.38" rx="12" fill="#5f8453" opacity="0.9" /><text x="326.33" y="322.00" text-anchor="middle" class="axis-label">2017</text><text x="326.33" y="107.62" text-anchor="middle" class="annotation-label">3.4%</text><rect x="412.67" y="101.17" width="42.00" height="184.83" rx="12" fill="#5f8453" opacity="0.9" /><text x="433.67" y="322.00" text-anchor="middle" class="axis-label">2018</text><text x="433.67" y="93.17" text-anchor="middle" class="annotation-label">3.7%</text><rect x="520.00" y="110.87" width="42.00" height="175.13" rx="12" fill="#5f8453" opacity="0.9" /><text x="541.00" y="322.00" text-anchor="middle" class="axis-label">2019</text><text x="541.00" y="102.87" text-anchor="middle" class="annotation-label">3.5%</text><rect x="627.33" y="89.58" width="42.00" height="196.42" rx="12" fill="#5f8453" opacity="0.9" /><text x="648.33" y="322.00" text-anchor="middle" class="axis-label">2020</text><text x="648.33" y="81.58" text-anchor="middle" class="annotation-label">3.9%</text><path d="M 111.67 124.00 L 219.00 228.61 L 326.33 226.59 L 433.67 177.70 L 541.00 191.26 L 648.33 139.96" fill="none" stroke="#d9a441" stroke-width="3.25" stroke-linecap="round" stroke-linejoin="round" /><circle cx="111.67" cy="124.00" r="4.2" fill="#d9a441" stroke="white" stroke-width="2" /><circle cx="219.00" cy="228.61" r="4.2" fill="#d9a441" stroke="white" stroke-width="2" /><circle cx="326.33" cy="226.59" r="4.2" fill="#d9a441" stroke="white" stroke-width="2" /><circle cx="433.67" cy="177.70" r="4.2" fill="#d9a441" stroke="white" stroke-width="2" /><circle cx="541.00" cy="191.26" r="4.2" fill="#d9a441" stroke="white" stroke-width="2" /><circle cx="648.33" cy="139.96" r="4.2" fill="#d9a441" stroke="white" stroke-width="2" /></svg>
+            <div class="summary-grid">
+              <div class="summary-tile">
+                <p class="label">Conventional</p>
+                <p class="value">$1.08</p>
+                <p class="detail">30.95B sold in total</p>
+              </div>
+              <div class="summary-tile">
+                <p class="label">Organic</p>
+                <p class="value">$1.57</p>
+                <p class="detail">1.05B sold in total</p>
+              </div>
+              <div class="summary-tile">
+                <p class="label">2015 share</p>
+                <p class="value">2.0%</p>
+                <p class="detail">Organic share of total volume</p>
+              </div>
+              <div class="summary-tile">
+                <p class="label">2020 share</p>
+                <p class="value">3.9%</p>
+                <p class="detail">Organic share of total volume</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>3. Where and When Avocados Move</h2>
+          </div>
+          <p>
+            The biggest local markets are concentrated in large Sun Belt metros, while prices are highest in coastal
+            and Northeast markets. Demand also follows a seasonal rhythm: strongest in late winter through spring, with
+            prices peaking in late summer.
+          </p>
+        </div>
+        <div class="two-up">
+          <div class="chart-card">
+            <p class="card-title">Top local markets by volume</p>
+            <p class="card-subtitle">Broad regional rollups and Total U.S. removed for a cleaner local ranking</p>
+            <svg viewBox="0 0 760 420" role="img" aria-label="Top local markets by avocado volume"><line x1="180.00" y1="24.00" x2="180.00" y2="376.00" class="chart-grid" /><text x="180.00" y="404.00" text-anchor="middle" class="axis-label">0.00B</text><line x1="265.00" y1="24.00" x2="265.00" y2="376.00" class="chart-grid" /><text x="265.00" y="404.00" text-anchor="middle" class="axis-label">0.20B</text><line x1="350.00" y1="24.00" x2="350.00" y2="376.00" class="chart-grid" /><text x="350.00" y="404.00" text-anchor="middle" class="axis-label">0.40B</text><line x1="435.00" y1="24.00" x2="435.00" y2="376.00" class="chart-grid" /><text x="435.00" y="404.00" text-anchor="middle" class="axis-label">0.60B</text><line x1="520.00" y1="24.00" x2="520.00" y2="376.00" class="chart-grid" /><text x="520.00" y="404.00" text-anchor="middle" class="axis-label">0.80B</text><line x1="605.00" y1="24.00" x2="605.00" y2="376.00" class="chart-grid" /><text x="605.00" y="404.00" text-anchor="middle" class="axis-label">1.00B</text><line x1="690.00" y1="24.00" x2="690.00" y2="376.00" class="chart-grid" /><text x="690.00" y="404.00" text-anchor="middle" class="axis-label">1.20B</text><text x="168.00" y="46.60" text-anchor="end" class="series-label">Los Angeles</text><rect x="180.00" y="31.39" width="407.72" height="20.42" rx="12" fill="#244d37" /><text x="595.72" y="46.60" text-anchor="start" class="value-label">0.96B</text><text x="168.00" y="81.80" text-anchor="end" class="series-label">New York</text><rect x="180.00" y="66.59" width="224.50" height="20.42" rx="12" fill="#2b6244" /><text x="412.50" y="81.80" text-anchor="start" class="value-label">0.53B</text><text x="168.00" y="117.00" text-anchor="end" class="series-label">Dallas/Ft. Worth</text><rect x="180.00" y="101.79" width="185.39" height="20.42" rx="12" fill="#367755" /><text x="373.39" y="117.00" text-anchor="start" class="value-label">0.44B</text><text x="168.00" y="152.20" text-anchor="end" class="series-label">Houston</text><rect x="180.00" y="136.99" width="178.86" height="20.42" rx="12" fill="#458767" /><text x="366.86" y="152.20" text-anchor="start" class="value-label">0.42B</text><text x="168.00" y="187.40" text-anchor="end" class="series-label">Phoenix/Tucson</text><rect x="180.00" y="172.19" width="162.57" height="20.42" rx="12" fill="#559576" /><text x="350.57" y="187.40" text-anchor="start" class="value-label">0.38B</text><text x="168.00" y="222.60" text-anchor="end" class="series-label">West Tex/New Mexico</text><rect x="180.00" y="207.39" width="119.26" height="20.42" rx="12" fill="#68a087" /><text x="307.26" y="222.60" text-anchor="start" class="value-label">0.28B</text><text x="168.00" y="257.80" text-anchor="end" class="series-label">Denver</text><rect x="180.00" y="242.59" width="118.12" height="20.42" rx="12" fill="#7aac98" /><text x="306.12" y="257.80" text-anchor="start" class="value-label">0.28B</text><text x="168.00" y="293.00" text-anchor="end" class="series-label">Baltimore/Washington</text><rect x="180.00" y="277.79" width="117.62" height="20.42" rx="12" fill="#8eb8aa" /><text x="305.62" y="293.00" text-anchor="start" class="value-label">0.28B</text><text x="168.00" y="328.20" text-anchor="end" class="series-label">San Francisco</text><rect x="180.00" y="312.99" width="116.54" height="20.42" rx="12" fill="#a0c2b8" /><text x="304.54" y="328.20" text-anchor="start" class="value-label">0.27B</text><text x="168.00" y="363.40" text-anchor="end" class="series-label">Chicago</text><rect x="180.00" y="348.19" width="109.51" height="20.42" rx="12" fill="#b6d0c8" /><text x="297.51" y="363.40" text-anchor="start" class="value-label">0.26B</text></svg>
+          </div>
+          <div class="chart-card">
+            <p class="card-title">Seasonality</p>
+            <p class="card-subtitle">Average weekly volume by month, with weighted average price overlaid</p>
+            <svg viewBox="0 0 760 340" role="img" aria-label="Seasonal avocado demand and pricing"><line x1="58.00" y1="286.00" x2="702.00" y2="286.00" class="chart-grid" /><text x="50.00" y="290.00" text-anchor="end" class="axis-label">0.0M</text><line x1="58.00" y1="202.67" x2="702.00" y2="202.67" class="chart-grid" /><text x="50.00" y="206.67" text-anchor="end" class="axis-label">50.0M</text><line x1="58.00" y1="119.33" x2="702.00" y2="119.33" class="chart-grid" /><text x="50.00" y="123.33" text-anchor="end" class="axis-label">100.0M</text><line x1="58.00" y1="36.00" x2="702.00" y2="36.00" class="chart-grid" /><text x="50.00" y="40.00" text-anchor="end" class="axis-label">150.0M</text><text x="710.00" y="290.00" text-anchor="start" class="axis-label">$0.80</text><text x="710.00" y="240.00" text-anchor="start" class="axis-label">$0.90</text><text x="710.00" y="190.00" text-anchor="start" class="axis-label">$1.00</text><text x="710.00" y="140.00" text-anchor="start" class="axis-label">$1.10</text><text x="710.00" y="90.00" text-anchor="start" class="axis-label">$1.20</text><text x="710.00" y="40.00" text-anchor="start" class="axis-label">$1.30</text><rect x="58.00" y="10" width="12" height="12" rx="4" fill="#2f7b7a" /><text x="76.00" y="21.00" text-anchor="start" class="legend-label">Average weekly volume</text><line x1="238.00" y1="16" x2="258.00" y2="16" stroke="#c9744c" stroke-width="3" /><text x="266.00" y="21.00" text-anchor="start" class="legend-label">Weighted average price</text><rect x="72.49" y="108.64" width="24.69" height="177.36" rx="12" fill="#2f7b7a" opacity="0.9" /><text x="84.83" y="322.00" text-anchor="middle" class="axis-label">Jan</text><text x="84.83" y="100.64" text-anchor="middle" class="annotation-label">106.4M</text><rect x="126.16" y="88.83" width="24.69" height="197.17" rx="12" fill="#2f7b7a" opacity="0.9" /><text x="138.50" y="322.00" text-anchor="middle" class="axis-label">Feb</text><text x="138.50" y="80.83" text-anchor="middle" class="annotation-label">118.3M</text><rect x="179.82" y="106.77" width="24.69" height="179.23" rx="12" fill="#2f7b7a" opacity="0.9" /><text x="192.17" y="322.00" text-anchor="middle" class="axis-label">Mar</text><text x="192.17" y="98.77" text-anchor="middle" class="annotation-label">107.5M</text><rect x="233.49" y="103.02" width="24.69" height="182.98" rx="12" fill="#2f7b7a" opacity="0.9" /><text x="245.83" y="322.00" text-anchor="middle" class="axis-label">Apr</text><text x="245.83" y="95.02" text-anchor="middle" class="annotation-label">109.8M</text><rect x="287.16" y="83.75" width="24.69" height="202.25" rx="12" fill="#2f7b7a" opacity="0.9" /><text x="299.50" y="322.00" text-anchor="middle" class="axis-label">May</text><text x="299.50" y="75.75" text-anchor="middle" class="annotation-label">121.4M</text><rect x="340.82" y="96.92" width="24.69" height="189.08" rx="12" fill="#2f7b7a" opacity="0.9" /><text x="353.17" y="322.00" text-anchor="middle" class="axis-label">Jun</text><text x="353.17" y="88.92" text-anchor="middle" class="annotation-label">113.5M</text><rect x="394.49" y="109.01" width="24.69" height="176.99" rx="12" fill="#2f7b7a" opacity="0.9" /><text x="406.83" y="322.00" text-anchor="middle" class="axis-label">Jul</text><text x="406.83" y="101.01" text-anchor="middle" class="annotation-label">106.2M</text><rect x="448.16" y="115.01" width="24.69" height="170.99" rx="12" fill="#2f7b7a" opacity="0.9" /><text x="460.50" y="322.00" text-anchor="middle" class="axis-label">Aug</text><text x="460.50" y="107.01" text-anchor="middle" class="annotation-label">102.6M</text><rect x="501.82" y="122.83" width="24.69" height="163.17" rx="12" fill="#2f7b7a" opacity="0.9" /><text x="514.17" y="322.00" text-anchor="middle" class="axis-label">Sep</text><text x="514.17" y="114.83" text-anchor="middle" class="annotation-label">97.9M</text><rect x="555.49" y="133.96" width="24.69" height="152.04" rx="12" fill="#2f7b7a" opacity="0.9" /><text x="567.83" y="322.00" text-anchor="middle" class="axis-label">Oct</text><text x="567.83" y="125.96" text-anchor="middle" class="annotation-label">91.2M</text><rect x="609.16" y="137.98" width="24.69" height="148.02" rx="12" fill="#2f7b7a" opacity="0.9" /><text x="621.50" y="322.00" text-anchor="middle" class="axis-label">Nov</text><text x="621.50" y="129.98" text-anchor="middle" class="annotation-label">88.8M</text><rect x="662.82" y="140.69" width="24.69" height="145.31" rx="12" fill="#2f7b7a" opacity="0.9" /><text x="675.17" y="322.00" text-anchor="middle" class="axis-label">Dec</text><text x="675.17" y="132.69" text-anchor="middle" class="annotation-label">87.2M</text><path d="M 84.83 182.21 L 138.50 214.52 L 192.17 148.42 L 245.83 130.30 L 299.50 145.21 L 353.17 119.46 L 406.83 96.69 L 460.50 103.63 L 514.17 96.09 L 567.83 105.21 L 621.50 150.61 L 675.17 171.61" fill="none" stroke="#c9744c" stroke-width="3.25" stroke-linecap="round" stroke-linejoin="round" /><circle cx="84.83" cy="182.21" r="4.2" fill="#c9744c" stroke="white" stroke-width="2" /><circle cx="138.50" cy="214.52" r="4.2" fill="#c9744c" stroke="white" stroke-width="2" /><circle cx="192.17" cy="148.42" r="4.2" fill="#c9744c" stroke="white" stroke-width="2" /><circle cx="245.83" cy="130.30" r="4.2" fill="#c9744c" stroke="white" stroke-width="2" /><circle cx="299.50" cy="145.21" r="4.2" fill="#c9744c" stroke="white" stroke-width="2" /><circle cx="353.17" cy="119.46" r="4.2" fill="#c9744c" stroke="white" stroke-width="2" /><circle cx="406.83" cy="96.69" r="4.2" fill="#c9744c" stroke="white" stroke-width="2" /><circle cx="460.50" cy="103.63" r="4.2" fill="#c9744c" stroke="white" stroke-width="2" /><circle cx="514.17" cy="96.09" r="4.2" fill="#c9744c" stroke="white" stroke-width="2" /><circle cx="567.83" cy="105.21" r="4.2" fill="#c9744c" stroke="white" stroke-width="2" /><circle cx="621.50" cy="150.61" r="4.2" fill="#c9744c" stroke="white" stroke-width="2" /><circle cx="675.17" cy="171.61" r="4.2" fill="#c9744c" stroke="white" stroke-width="2" /></svg>
+          </div>
+        </div>
+        <div class="insight-grid">
+          <div class="insight-card">
+  <div class="insight-accent" style="background:#c9744c;"></div>
+  <p class="insight-title">Why controls matter</p>
+  <p class="insight-value">4.4x larger without controls</p>
+  <p class="insight-detail">The naive model confuses high-price organic fruit and structurally smaller, higher-cost markets with true price response.</p>
+</div>
+<div class="insight-card">
+  <div class="insight-accent" style="background:#5f8453;"></div>
+  <p class="insight-title">Organic remains niche</p>
+  <p class="insight-value">3.3% of total volume</p>
+  <p class="insight-detail">Organic share still nearly doubled from 2.0% in 2015 to 3.9% in 2020.</p>
+</div>
+<div class="insight-card">
+  <div class="insight-accent" style="background:#d9a441;"></div>
+  <p class="insight-title">Geographic price spread</p>
+  <p class="insight-value">82%</p>
+  <p class="insight-detail">Hartford/Springfield averages $1.40 versus Phoenix/Tucson at $0.77.</p>
+</div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p class="footnote">
+        Method notes: prices and trend comparisons are volume-weighted. Regression standard errors are conventional OLS
+        standard errors. The dashboard uses all 33,045 rows for the headline estimate; excluding broad rollups
+        leaves the elasticity essentially unchanged. Source: Hass Avocado Board weekly avocado data, 2015-01-04 through 2020-11-29.
+      </p>
+    </footer>
+  </div>
+</body>
+</html>

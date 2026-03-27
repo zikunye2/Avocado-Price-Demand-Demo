@@ -1,4 +1,4 @@
-Analyze the avocado dataset in `data/avocado.csv` and build a dashboard.
+Analyze the avocado dataset in `workspace/avocado.csv` and build a dashboard.
 
 This is real weekly data from the Hass Avocado Board (2015–2020) covering 54 U.S. markets with average price, sales volume, and organic vs conventional types.
 

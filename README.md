@@ -5,15 +5,16 @@ A live demo for coding agents: analyze the relationship between avocado prices a
 ## What's Inside
 
 ```
-data/avocado.csv   ← 33,000+ weekly records (2015–2020)
-prompt.md          ← Starter prompt for the coding agent
+workspace/avocado.csv   ← 33,000+ weekly records (2015–2020)
+prompt.md               ← Starter prompt for the coding agent
+examples/               ← Sample outputs from Claude Code and Codex
 ```
 
 ## How to Use
 
 1. Open this folder in a coding agent (Claude Code, Codex, Cursor, etc.)
 2. Paste the prompt from `prompt.md`
-3. Let the agent inspect the data, run a regression, and build a dashboard
+3. The agent will work inside the `workspace/` folder — that's where the data lives
 4. Review the output and iterate
 
 ## Dataset
