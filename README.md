@@ -31,6 +31,6 @@ Real data from the [Hass Avocado Board](https://hassavocadoboard.com), sourced v
 | year | Year |
 | geography | City, region, or "Total U.S." (54 markets) |
 
-## The MBA Story
+## The Question
 
-This is a classic **price elasticity of demand** dataset. The core question: *When avocado prices go up, how much does demand drop?* The coding agent will run a regression analysis and visualize the answer.
+*When avocado prices go up, how much does demand drop?* A classic price elasticity problem — the coding agent will run a regression and visualize the answer.
