@@ -1,36 +1,36 @@
-# Sales Dashboard Demo
+# Avocado Price & Demand Demo
 
-A live demo for coding agents: turn a raw sales CSV into an executive dashboard.
+A live demo for coding agents: analyze the relationship between avocado prices and demand, then build an executive dashboard.
 
 ## What's Inside
 
 ```
-data/sales_data.csv   ← 1,400+ sales records (2024–2025)
-prompt.md             ← Starter prompt for the coding agent
+data/avocado.csv   ← 33,000+ weekly records (2015–2020)
+prompt.md          ← Starter prompt for the coding agent
 ```
 
 ## How to Use
 
 1. Open this folder in a coding agent (Claude Code, Codex, Cursor, etc.)
 2. Paste the prompt from `prompt.md`
-3. Let the agent inspect the data, clean it, and build a dashboard
+3. Let the agent inspect the data, run a regression, and build a dashboard
 4. Review the output and iterate
 
 ## Dataset
 
+Real data from the [Hass Avocado Board](https://hassavocadoboard.com), sourced via [Kaggle](https://www.kaggle.com/datasets/timmate/avocado-prices-2020).
+
 | Column | Description |
 |--------|-------------|
-| order_id | Unique order identifier |
-| date | Order date (2024-01-01 to 2025-12-30) |
-| region | West, East, South, Midwest |
-| category | Electronics, Office Supplies, Furniture, Software |
-| sales_rep | 12 sales representatives across 4 regions |
-| channel | Direct, Online, Partner (~2% missing) |
-| units | Quantity sold |
-| unit_price | Price per unit |
-| revenue | Total revenue |
-| cost | Cost of goods |
-| profit | Revenue minus cost |
-| customer_satisfaction | 1.0–5.0 rating (~3% missing) |
+| date | Weekly observation date (2015–2020) |
+| average_price | Average price of a single avocado |
+| total_volume | Total avocados sold |
+| 4046, 4225, 4770 | Volume by PLU code (size) |
+| total_bags, small_bags, large_bags, xlarge_bags | Volume by bag type |
+| type | Conventional or organic |
+| year | Year |
+| geography | City, region, or "Total U.S." (54 markets) |
 
-The dataset includes built-in seasonality (Q4 spike), YoY growth (~12% in 2025), and missing values for the agent to handle.
+## The MBA Story
+
+This is a classic **price elasticity of demand** dataset. The core question: *When avocado prices go up, how much does demand drop?* The coding agent will run a regression analysis and visualize the answer.
